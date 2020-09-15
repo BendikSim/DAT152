@@ -19,22 +19,21 @@ class GuiHandler {
      */
     showTask(task) {
         let select = document.createElement("select");
-        let option = document.createElement("option");
 
-        select.setAttribute("class", "selectelement");
-        option.setAttribute("value", "0");
-        option.setAttribute("selected", "");
-        option.innerText = "<MODIFY>";
-        select.appendChild(option);
+        const defaultOption = document.createElement("option");
+         defaultOption.setAttribute("value", 0);
+        defaultOption.setAttribute("selected", true);
+        defaultOption.textContent = "<Modify>";
+        defaultOption.setAttribute("disabled", true);
+        selector.appendChild(defaultOption);
 
-        for (const status of this.allstatuses) {
+        for (let i=0; i < this.allstatuses.length; i++) {
             let opt = document.createElement("option");
-            opt.setAttribute("value", status);
-            let disb = ``;
-            if (task.status === status) {
-                opt.setAttribute("disabled", "");
-            }
-            opt.innerText = status;
+            opt.setAttribute("value", this.allstatuses[i]);
+            task.status === this.allstatuses[i]
+            ? option.setAttribute("disabled", true)
+            : "";
+            opt.innerText = this.allstatuses[i];
             select.appendChild(opt);
         }
 
@@ -84,6 +83,32 @@ class GuiHandler {
      * @param {object} task Task to be updated
      */
     updateTask = (task) => {
+        let id = task.id;
+        let status = task.status;
+
+        if (!this.taskExists(id)) {
+            alert(`Task with id ${id} was not found`);
+        } else {
+        const rowRef = this.findTaskRowRef(id);
+
+      //Get old status and enable its option
+      const oldStatus = rowRef.childNodes[1].textContent;
+      rowRef
+        .querySelector(`select > option[value=${oldStatus}]`)
+        .removeAttribute("disabled");
+
+      //Update status and disable the option
+      rowRef.childNodes[1].textContent = status;
+      rowRef
+        .querySelector(`select > option[value=${status}]`)
+        .setAttribute("disabled", true);
+      //Resets the selector to its initial value (<Modify>)
+      const selector = rowRef.querySelector(`select`);
+      selector.selectedIndex = 0;
+    }
+    console.log(task.status)
+    this.noTask();
+    /*
         const node = document.getElementById(task.id);
         if(task.title != null){
             node.getElementsByTagName('td')[0].innerText = task.title;
@@ -98,6 +123,7 @@ class GuiHandler {
         node.getElementsByTagName('select')[0].selectedIndex = 0;
         console.log(task.status);
         this.noTask();
+        */
     }
 
     updateTaskClick = (t) => {
@@ -160,38 +186,6 @@ class GuiHandler {
 
 
     /**
-     * Creates a new table from scratch by using DOM-methods. Appends it to the last child of the this.container.
-     */
-    /**
-    createTable() {
-        const tasklist = this.container.lastElementChild;
-        const table = document.createElement("table");
-        const thead = table.createTHead();
-        const tbody = document.createElement("tbody");
-        const headerRow = document.createElement("tr");
-        const taskHeader = document.createElement("th");
-        const statusHeader = document.createElement("th");
-
-        const taskTextNode = document.createTextNode("Tasks");
-        const statusTextNode = document.createTextNode("Status");
-
-        taskHeader.appendChild(taskTextNode);
-        statusHeader.appendChild(statusTextNode);
-
-        headerRow.appendChild(taskHeader);
-        headerRow.appendChild(statusHeader);
-
-        thead.appendChild(headerRow);
-
-        table.appendChild(thead);
-        table.appendChild(tbody);
-
-        tasklist.appendChild(table);
-    }
-     */
-
-
-    /**
      * To set a list of all possible task state, i.e. the values that can be
      * chosen with the HTML select elements.
      */
@@ -220,5 +214,15 @@ class GuiHandler {
     set newStatusCallback(f) {
         this.newStatusCallbackArray.push(f);
     }
+
+    /**
+   * Finds the table row that holds the task with given id
+   * @private
+   * @param {number} id Id of the task
+   * @return {object} HTMLTableRowElement
+   */
+  findTaskRowRef(id) {
+    return this.container.querySelector(`tbody > tr[data-identity="${id}"]`);
+  }
 
 }
